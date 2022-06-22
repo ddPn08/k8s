@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: ddpn08
+  name: samba
+spec:
+  selector:
+    matchLabels:
+      app: samba
+  template:
+    metadata:
+      labels:
+        app: samba
+    spec:
+      containers:
+        - name: samba
+          image: dperson/samba
+          env:
+            - name: PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: password
+          args:
+            - "-p"
+            - "-r"
+            - "-u"
+            - "ddPn08;$(PASSWORD)"
+            - "-s"
+            - "share;/mount;yes;no;no;ddPn08;ddPn08;ddPn08" 
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "2"
+          volumeMounts:
+            - name: samba-data
+              mountPath: /mount
+      volumes:
+        - name: samba-data
+          persistentVolumeClaim:
+            claimName: samba-pvc
